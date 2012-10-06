@@ -133,6 +133,15 @@ LoadKernel (int argc, char *argv[])
 		loadAddon ("3dovideo");
 	}
 
+#ifdef RETREAT_SETUPMENU
+	// Never run Retreat-patched UQM without new setup strings
+	if (!loadAddon("allow-retreat"))
+	{
+		log_add(log_Error, "The Retreat Patch setup strings are missing.");
+		return FALSE;
+	}
+#endif
+
 	/* Now load the rest of the addons, in order. */
 	prepareAddons (optAddons);
 

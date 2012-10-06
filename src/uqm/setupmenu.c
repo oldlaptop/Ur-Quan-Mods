@@ -73,8 +73,19 @@ static void clear_control (WIDGET_CONTROLENTRY *widget);
 #endif
 
 #define MENU_COUNT          8
-#define CHOICE_COUNT       22
+
+#ifdef RETREAT_SETUPMENU
+#define CHOICE_COUNT	   23
+#else
+#define CHOICE_COUNT	   22
+#endif
+
+#ifdef RETREAT_SETUPMENU
+#define SLIDER_COUNT        4
+#else
 #define SLIDER_COUNT        3
+#endif
+
 #define BUTTON_COUNT       10
 #define LABEL_COUNT         4
 #define TEXTENTRY_COUNT     1
@@ -96,7 +107,11 @@ typedef int (*HANDLER)(WIDGET *, int);
 static int choice_widths[CHOICE_COUNT] = {
 	3, 2, 3, 3, 2, 2, 2, 2, 2, 2, 
 	2, 2, 3, 2, 2, 3, 3, 2,	3, 3, 
-	3, 2 };
+	3, 2
+#ifdef RETREAT_SETUPMENU
+	, 3
+#endif
+	   };
 
 static HANDLER button_handlers[BUTTON_COUNT] = {
 	quit_main_menu, quit_sub_menu, do_graphics, do_engine,
@@ -105,11 +120,20 @@ static HANDLER button_handlers[BUTTON_COUNT] = {
 
 static int menu_sizes[MENU_COUNT] = {
 	7, 5, 7, 9, 2, 5,
+
+/*
+ * Outer #ifdef is original to UQM and makes compilation of an OpenGL
+ * option conditional. Inner #ifdefs are added by the retreat patch
+ * and make compilation of the new setup menu option conditional.
+ */
+	4
 #ifdef HAVE_OPENGL
-	5,
-#else
-	4,
+	+1
+#endif /* HAVE_OPENGL */
+#ifdef RETREAT_SETUPMENU
+	+2
 #endif
+	,
 	11
 };
 
@@ -160,6 +184,10 @@ static WIDGET *advanced_widgets[] = {
 	(WIDGET *)(&choices[12]),
 	(WIDGET *)(&choices[15]),
 	(WIDGET *)(&choices[16]),
+#ifdef RETREAT_SETUPMENU
+	(WIDGET *)(&choices[22]),
+	(WIDGET *)(&sliders[3]),
+#endif
 	(WIDGET *)(&buttons[1]) };
 	
 static WIDGET *keyconfig_widgets[] = {
@@ -387,10 +415,20 @@ SetDefaults (void)
 	choices[19].selected = opts.player2;
 	choices[20].selected = 0;
 	choices[21].selected = opts.musicremix;
-
+#ifdef RETREAT_SETUPMENU
+	choices[22].selected = opts.retreat;
+#endif
 	sliders[0].value = opts.musicvol;
 	sliders[1].value = opts.sfxvol;
 	sliders[2].value = opts.speechvol;
+#ifdef RETREAT_SETUPMENU
+	/* 
+	 * This value is stored in melee frames (1/24 second), but
+	 * we want the slider to work with seconds, so we need
+	 * to perform conversion here.
+	 */
+	 sliders[3].value = (opts.retreat_wait / 24);
+#endif
 }
 
 static void
@@ -418,10 +456,19 @@ PropagateResults (void)
 	opts.player1 = choices[18].selected;
 	opts.player2 = choices[19].selected;
 	opts.musicremix = choices[21].selected;
-
+#ifdef RETREAT_SETUPMENU
+	opts.retreat = choices[22].selected;
+#endif
 	opts.musicvol = sliders[0].value;
 	opts.sfxvol = sliders[1].value;
 	opts.speechvol = sliders[2].value;
+#ifdef RETREAT_SETUPMENU
+	/*
+	 * As above, we need to convert between seconds
+	 * and frames for this value.
+	 */
+	opts.retreat_wait = (sliders[3].value * 24);
+#endif
 	SetGlobalOptions (&opts);
 }
 
@@ -1201,7 +1248,10 @@ GetGlobalOptions (GLOBALOPTS *opts)
 	opts->musicvol = (((int)(musicVolumeScale * 100.0f) + 2) / 5) * 5;
 	opts->sfxvol = (((int)(sfxVolumeScale * 100.0f) + 2) / 5) * 5;
 	opts->speechvol = (((int)(speechVolumeScale * 100.0f) + 2) / 5) * 5;
-	
+#ifdef RETREAT_SETUPMENU
+	opts->retreat = opt_retreat;
+	opts->retreat_wait = opt_retreat_wait;
+#endif
 }
 
 void
@@ -1227,7 +1277,7 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	case OPTVAL_640_480:
 		NewWidth = 640;
 		NewHeight = 480;
-#ifdef HAVE_OPENGL	       
+#ifdef HAVE_OPENGL
 		NewDriver = (opts->driver == OPTVAL_ALWAYS_GL ? TFB_GFXDRIVER_SDL_OPENGL : TFB_GFXDRIVER_SDL_PURE);
 #else
 		NewDriver = TFB_GFXDRIVER_SDL_PURE;
@@ -1313,6 +1363,10 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	optWhichShield = (opts->shield == OPTVAL_3DO) ? OPT_3DO : OPT_PC;
 	optMeleeScale = (opts->meleezoom == OPTVAL_3DO) ? TFB_SCALE_TRILINEAR : TFB_SCALE_STEP;
 	optWhichIntro = (opts->intro == OPTVAL_3DO) ? OPT_3DO : OPT_PC;
+#ifdef RETREAT_SETUPMENU
+	opt_retreat = opts->retreat;
+	opt_retreat_wait = opts->retreat_wait;
+#endif
 	PlayerControls[0] = opts->player1;
 	PlayerControls[1] = opts->player2;
 
@@ -1331,6 +1385,11 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	res_PutBoolean ("config.pulseshield", opts->shield == OPTVAL_3DO);
 	res_PutInteger ("config.player1control", opts->player1);
 	res_PutInteger ("config.player2control", opts->player2);
+
+#ifdef RETREAT_SETUPMENU
+	res_PutInteger ("config.retreat", opts->retreat);
+	res_PutInteger ("config.retreat_wait", opts->retreat_wait);
+#endif
 
 	switch (opts->adriver) {
 	case OPTVAL_SILENCE:
