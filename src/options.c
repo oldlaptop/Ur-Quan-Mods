@@ -52,6 +52,9 @@ int optSmoothScroll;
 int optMeleeScale;
 const char **optAddons;
 
+int opt_retreat;
+DWORD opt_retreat_wait;
+
 BOOLEAN opt3doMusic;
 BOOLEAN optRemixMusic;
 BOOLEAN optSubtitles;

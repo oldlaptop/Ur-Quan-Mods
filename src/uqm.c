@@ -128,6 +128,9 @@ struct options_struct
 	DECL_CONFIG_OPTION(float, speechVolumeScale);
 	DECL_CONFIG_OPTION(bool, safeMode);
 
+	DECL_CONFIG_OPTION(int, retreat);
+	DECL_CONFIG_OPTION(int, retreat_wait);
+
 #define INIT_CONFIG_OPTION(name, val) \
 	{ val, false }
 
@@ -197,6 +200,14 @@ static const struct option_list_value accelList[] =
 	{NULL, 0}
 };
 
+static const struct option_list_value retreatList[] =
+{
+	{"none",      OPTVAL_DENY},
+	{"once",      OPTVAL_ONEPERSHIP},
+	{"unlimited", OPTVAL_ALLOW},
+	{NULL, 0}
+};
+
 // Looks up the given string value in the given list and passes
 // the associated int value back. returns true if value was found.
 // The list is terminated by a NULL 'str' value.
@@ -260,6 +271,14 @@ main (int argc, char *argv[])
 		INIT_CONFIG_OPTION(  sfxVolumeScale,    1.0f ),
 		INIT_CONFIG_OPTION(  speechVolumeScale, 1.0f ),
 		INIT_CONFIG_OPTION(  safeMode,          false ),
+
+		INIT_CONFIG_OPTION(  retreat,		OPTVAL_ONEPERSHIP),
+		/*
+		 * This is in melee frames (1/24 second), converted to seconds
+		 * on the fly when needed for user configuration purposes.
+		 */
+		INIT_CONFIG_OPTION(  retreat_wait,      600 ),
+
 	};
 	struct options_struct defaults = options;
 	int optionsResult;
@@ -382,6 +401,9 @@ main (int argc, char *argv[])
 	sfxVolumeScale = options.sfxVolumeScale.value;
 	speechVolumeScale = options.speechVolumeScale.value;
 	optAddons = options.addons;
+	
+	opt_retreat      = options.retreat.value;
+	opt_retreat_wait = options.retreat_wait.value;
 
 	prepareContentDir (options.contentDir, options.addonDir, argv[0]);
 	prepareMeleeDir ();
@@ -571,6 +593,17 @@ getListConfigValue (struct int_option *option, const char *config_val,
 	return found;
 }
 
+/* Copied from getVolumeConfigValue, with minor changes */
+
+static void
+getIntConfigValue (struct int_option *option, const char *config_val)
+{
+	if (option->set || !res_IsInteger (config_val))
+		return;
+	option->value = res_GetInteger(config_val);
+	option->set = true;
+}
+
 static void
 getUserConfigOptions (struct options_struct *options)
 {
@@ -620,6 +653,9 @@ getUserConfigOptions (struct options_struct *options)
 
 	getBoolConfigValue (&options->use3doMusic, "config.3domusic");
 	getBoolConfigValue (&options->useRemixMusic, "config.remixmusic");
+
+	getIntConfigValue  (&options->retreat,      "config.retreat");
+	getIntConfigValue  (&options->retreat_wait, "config.retreat_wait");
 
 	getBoolConfigValueXlat (&options->meleeScale, "config.smoothmelee",
 			TFB_SCALE_TRILINEAR, TFB_SCALE_STEP);
@@ -678,6 +714,10 @@ enum
 	ADDONDIR_OPT,
 	ACCEL_OPT,
 	SAFEMODE_OPT,
+
+	SUPERMELEE_RETREAT_OPT,
+	RETREAT_WAIT_OPT,
+
 #ifdef NETPLAY
 	NETHOST1_OPT,
 	NETPORT1_OPT,
@@ -725,6 +765,10 @@ static struct option longOptions[] =
 	{"addondir", 1, NULL, ADDONDIR_OPT},
 	{"accel", 1, NULL, ACCEL_OPT},
 	{"safe", 0, NULL, SAFEMODE_OPT},
+
+	{"retreat",      1, NULL, SUPERMELEE_RETREAT_OPT},
+	{"retreat_wait", 1, NULL, RETREAT_WAIT_OPT},
+
 #ifdef NETPLAY
 	{"nethost1", 1, NULL, NETHOST1_OPT},
 	{"netport1", 1, NULL, NETPORT1_OPT},
@@ -783,6 +827,18 @@ setVolumeOption (struct float_option *option, const char *strval,
 	if (parseIntOption (strval, &intVol, optName) != 0)
 		return false;
 	parseIntVolume (intVol, &option->value);
+	option->set = true;
+	return true;
+}
+
+/* Copied from setFloatOption, with minor changes */
+static bool
+setIntOption (struct int_option *option, const char *strval,
+		const char *optName)
+{
+	if (parseIntOption (strval, &option->value, optName) != 0)
+		return false;
+	parseIntOption (strval, &option->value, optName);
 	option->set = true;
 	return true;
 }
@@ -1016,6 +1072,30 @@ parseOptions (int argc, char *argv[], struct options_struct *options)
 	                case SAFEMODE_OPT:
 				setBoolOption (&options->safeMode, true);
 				break;
+			case SUPERMELEE_RETREAT_OPT:
+				if (!setListOption (&options->retreat, optarg, retreatList))
+					if (!setIntOption (&options->retreat, optarg,
+						      "--retreat"))
+					{
+						InvalidArgument (optarg, "--retreat");
+						badArg = true;
+					}
+				break;
+			case RETREAT_WAIT_OPT:
+				if (!setIntOption (&options->retreat_wait, optarg,
+					      "--retreat_wait"))
+				{
+					InvalidArgument (optarg, "--retreat_wait");
+					badArg = true;
+					break;
+				}
+				/* 
+				 * The human-visible commandline option is specified in seconds,
+				 * but the option is stored internally as melee frames, which are
+				 * 1/24 of a second. We perform this conversion here.
+				 */
+				options->retreat_wait.value = options->retreat_wait.value * 24;
+				break;
 #ifdef NETPLAY
 			case NETHOST1_OPT:
 				netplayOptions.peer[0].isServer = false;
@@ -1179,6 +1259,13 @@ usage (FILE *out, const struct options_struct *defaults)
 	log_add (log_User, "  --stereosfx (enables positional sound effects, "
 			"currently only for openal)");
 	log_add (log_User, "  --safe (start in safe mode)");
+
+
+	log_add (log_User, "  --retreat (enables retreating in Supermelee, "
+			"values are none, once, or unlimited)");
+	log_add (log_User, "  --retreat_wait (number of seconds to wait before "
+			"allowing a ship to flee in Supermelee, default is 25)");
+
 #ifdef NETPLAY
 	log_add (log_User, "  --nethostN=HOSTNAME (server to connect to for "
 			"player N (1=bottom, 2=top)");

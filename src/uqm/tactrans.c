@@ -502,8 +502,13 @@ new_ship (ELEMENT *DeadShipPtr)
 		if (!FleetIsInfinite (DeadStarShipPtr->playerNr))
 		{	// This may be a dead ship (crew_level == 0) or a warped out ship
 			UpdateShipFragCrew (DeadStarShipPtr);
-			// Deactivate the ship (cannot be selected)
-			DeadStarShipPtr->SpeciesID = NO_ID;
+
+			// Do not deactivate ships fleeing from Supermelee
+			if(!DeadStarShipPtr->state_flee || (opt_retreat==OPTVAL_DENY) ||
+			   (LOBYTE (GLOBAL (CurrentActivity)) != SUPER_MELEE))
+			{
+				DeadStarShipPtr->SpeciesID = NO_ID;
+			}
 		}
 
 		if (GetNextStarShip (DeadStarShipPtr, DeadStarShipPtr->playerNr))
@@ -905,6 +910,14 @@ ship_transition (ELEMENT *ElementPtr)
 				ShipImagePtr->current.location.y =
 						WRAP_Y (ShipImagePtr->current.location.y);
 			}
+
+			if (opt_retreat != OPTVAL_DENY)
+			{
+				RACE_DESC * RDPtr;
+				RDPtr = StarShipPtr->RaceDescPtr;
+				StarShipPtr->last_crew_level=RDPtr->ship_info.crew_level;
+			}
+
 			ShipImagePtr->preprocess_func = ship_transition;
 			ShipImagePtr->death_func = cycle_ion_trail;
 			SetElementStarShip (ShipImagePtr, StarShipPtr);

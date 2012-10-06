@@ -265,6 +265,35 @@ struct STARSHIP
 	BYTE energy_counter;
 			// In battle: frames left before energy regeneration
 
+	BYTE last_crew_level;
+			/* 
+			 * Added by the supermelee warpout patch, apparently used
+			 * to save the the ships crew level between warpouts
+			 */
+	BOOLEAN state_flee;
+			/*
+			 * This is added by the warpout patch so a ship can know if
+			 * it's warping out. Currently used by Pkunk to prevent
+			 * respawning while retreating, and by new_ship to keep
+			 * retreated ships selectable.
+			 */
+	BOOLEAN CanRunAway;
+			// Added to forbid retreating for a ship more than 1 time
+			// Now used for the retreat timer as well.
+
+	DWORD entrance_time;
+			/*
+			 * Contains the exact frame according to battleFrameCount that
+			 * the ship entered the arena. Used to determine when the ship
+			 * can be permitted to flee.
+			 */
+	BYTE flee_counter;
+			/*
+			 * Counts the number of times a ship has fled.
+			 * Used in ship_preprocess to determine if a ship should
+			 * be permitted to flee.
+			 */
+
 	BYTE ship_input_state;
 	STATUS_FLAGS cur_status_flags;
 	STATUS_FLAGS old_status_flags;

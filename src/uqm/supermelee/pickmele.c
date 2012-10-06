@@ -611,6 +611,10 @@ FillPickMeleeFrame (MeleeSetup *setup)
 				BuiltShipPtr->race_strings = 0;
 				BuiltShipPtr->icons = 0;
 				BuiltShipPtr->RaceDescPtr = 0;
+
+				/* Warpout patch addition */
+				BuiltShipPtr->flee_counter = 0;
+
 				UnlockStarShip (&race_q[side], hBuiltShip);
 			}
 		}

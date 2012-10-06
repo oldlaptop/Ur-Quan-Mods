@@ -231,6 +231,13 @@ ship_preprocess (ELEMENT *ElementPtr)
 		(*RDPtr->preprocess_func) (ElementPtr);
 		cur_status_flags = StarShipPtr->cur_status_flags;
 	}
+	                                  /* Don't stomp on the one retreat rule, if active */
+	if ((!StarShipPtr->CanRunAway) && ((opt_retreat==OPTVAL_ALLOW) || (StarShipPtr->flee_counter == 0)) &&
+	    ((battleFrameCount) >= (StarShipPtr->entrance_time + opt_retreat_wait)))
+	{
+		/* The time limit has expired, permit retreat */
+		StarShipPtr->CanRunAway = TRUE;
+	}
 
 	if (ElementPtr->turn_wait)
 		--ElementPtr->turn_wait;
@@ -402,11 +409,20 @@ spawn_ship (STARSHIP *StarShipPtr)
 
 		if (RDPtr->ship_info.crew_level > RDPtr->ship_info.max_crew)
 			RDPtr->ship_info.crew_level = RDPtr->ship_info.max_crew;
+	} else if (opt_retreat != OPTVAL_DENY)
+	{
+		RDPtr->ship_info.crew_level = StarShipPtr->last_crew_level;
+		if (RDPtr->ship_info.crew_level > RDPtr->ship_info.max_crew || !RDPtr->ship_info.crew_level)
+			RDPtr->ship_info.crew_level = RDPtr->ship_info.max_crew;
 	}
 
 	StarShipPtr->energy_counter = 0;
 	StarShipPtr->weapon_counter = 0;
 	StarShipPtr->special_counter = 0;
+
+	StarShipPtr->state_flee = FALSE;
+	StarShipPtr->CanRunAway = FALSE; /* this will become TRUE after time limit expires */
+	StarShipPtr->entrance_time = battleFrameCount; /* used for calculating time limit */
 
 	hShip = StarShipPtr->hShip;
 	if (hShip == 0)
