@@ -265,11 +265,9 @@ struct STARSHIP
 	BYTE energy_counter;
 			// In battle: frames left before energy regeneration
 
-	BYTE last_crew_level;
-			/* 
-			 * Added by the supermelee warpout patch, apparently used
-			 * to save the the ships crew level between warpouts
-			 */
+	BYTE last_energy_level;
+			// SUPER_MELEE: To get back the last energy level after retreating
+
 	BOOLEAN state_flee;
 			/*
 			 * This is added by the warpout patch so a ship can know if

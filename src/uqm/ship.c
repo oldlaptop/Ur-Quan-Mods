@@ -166,6 +166,12 @@ ship_preprocess (ELEMENT *ElementPtr)
 	}
 	else
 	{	// Preprocessing for the first time
+
+		if(StarShipPtr->crew_level) {
+			RDPtr->ship_info.crew_level=StarShipPtr->crew_level;
+			RDPtr->ship_info.energy_level=StarShipPtr->last_energy_level;
+		}
+
 		ElementPtr->crew_level = RDPtr->ship_info.crew_level;
 
 		if (ElementPtr->playerNr == NPC_PLAYER_NUM
@@ -411,7 +417,6 @@ spawn_ship (STARSHIP *StarShipPtr)
 			RDPtr->ship_info.crew_level = RDPtr->ship_info.max_crew;
 	} else if (opt_retreat != OPTVAL_DENY)
 	{
-		RDPtr->ship_info.crew_level = StarShipPtr->last_crew_level;
 		if (RDPtr->ship_info.crew_level > RDPtr->ship_info.max_crew || !RDPtr->ship_info.crew_level)
 			RDPtr->ship_info.crew_level = RDPtr->ship_info.max_crew;
 	}
