@@ -43,6 +43,8 @@
 #include "libs/mathlib.h"
 #include "libs/log.h"
 
+#include "uqm/colors.h"	// For Ilwrath INVIS_COLOR
+
 static void cleanup_dead_ship (ELEMENT *ElementPtr);
 
 static BOOLEAN dittyIsPlaying;
@@ -662,6 +664,22 @@ ship_death (ELEMENT *ShipPtr)
 	StopMusic ();
 
 	GetElementStarShip (ShipPtr, &StarShipPtr);
+        
+	// Enable Ilwrath's cloak visibility for both sides
+	// if the ship was cloaked upon destruction
+	// Having the cloak on for one side and off for one causes
+	// a desynch in net play
+    if (StarShipPtr->SpeciesID = ILWRATH_ID && StarShipPtr->crew_level == 0)
+    {
+		if (GetPrimType (&DisplayArray[ShipPtr->PrimIndex]) == STAMPFILL_PRIM)
+		{
+			fprintf(stderr, "fixing Ilwarth %d\n", StarShipPtr->SpeciesID);
+	    	PRIMITIVE *lpPrim;
+	    	lpPrim = & (DisplayArray)[ShipPtr->PrimIndex];
+	    	SetPrimType(lpPrim, STAMP_PRIM);
+	    	SetPrimColor(lpPrim, BLACK_COLOR);
+		}
+	}
 
 	if (ShipPtr->mass_points <= MAX_SHIP_MASS)
 	{	// Not running away and not reincarnating (Pkunk)

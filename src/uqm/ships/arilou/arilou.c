@@ -216,6 +216,7 @@ arilou_preprocess (ELEMENT *ElementPtr)
 
 			ElementPtr->state_flags |= NONSOLID | FINITE_LIFE | CHANGING;
 			ElementPtr->life_span = HYPER_LIFE;
+			ElementPtr->is_teleporting = TRUE;
 
 			ElementPtr->next.image.farray =
 					StarShipPtr->RaceDescPtr->ship_data.special;
@@ -256,7 +257,70 @@ arilou_preprocess (ELEMENT *ElementPtr)
 					ElementPtr->next.image.frame =
 					SetAbsFrameIndex (StarShipPtr->RaceDescPtr->ship_data.ship[0],
 					StarShipPtr->ShipFacing);
+<<<<<<< HEAD
 			InitIntersectStartPoint (ElementPtr);
+=======
+
+			// Teleport again if the special button is held down.
+			if (StarShipPtr->cur_status_flags & SPECIAL
+				&& StarShipPtr->RaceDescPtr->ship_info.energy_level >= SPECIAL_ENERGY_COST)
+			{
+				ElementPtr->life_span = TRANSIT_TIME;
+
+				ElementPtr->current.image.farray =
+					ElementPtr->next.image.farray =
+						StarShipPtr->RaceDescPtr->ship_data.special;
+				ElementPtr->current.image.frame =
+					ElementPtr->next.image.frame =
+						SetAbsFrameIndex (ElementPtr->next.image.frame, 0);
+
+				DeltaEnergy (ElementPtr, -SPECIAL_ENERGY_COST);
+
+				ProcessSound (SetAbsSoundIndex (
+						// Teleport sound //
+					StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 1), ElementPtr);
+			}
+			// Prevent the Skiff from spawning inside solid matter.
+			else if (Overlap (ElementPtr)
+				// && StarShipPtr->RaceDescPtr->ship_info.crew_level > 1
+				&& StarShipPtr->RaceDescPtr->ship_info.energy_level >= SPECIAL_ENERGY_COST)
+			{
+				// Don't forward-teleport again.
+				StarShipPtr->cur_status_flags &= ~THRUST;
+				StarShipPtr->old_status_flags &= ~THRUST;
+
+				ElementPtr->life_span = TRANSIT_TIME;
+
+				ElementPtr->current.image.farray =
+					ElementPtr->next.image.farray =
+						StarShipPtr->RaceDescPtr->ship_data.special;
+				ElementPtr->current.image.frame =
+					ElementPtr->next.image.frame =
+						SetAbsFrameIndex (ElementPtr->next.image.frame, 0);
+
+				DeltaEnergy (ElementPtr, -SPECIAL_ENERGY_COST);
+				// DeltaCrew (ElementPtr, -1); // Inflict damage whenever Arilou escapes Overlap.
+
+				ProcessSound (SetAbsSoundIndex (
+						/* HYPERJUMP */
+					StarShipPtr->RaceDescPtr->ship_data.ship_sounds, 1), ElementPtr);
+			}
+			else
+			{
+				// Reappear.
+				ElementPtr->state_flags &= ~(NONSOLID | FINITE_LIFE);
+				ElementPtr->state_flags |= APPEARING;
+				InitIntersectStartPoint (ElementPtr);
+
+				// Stun the Skiff for an instant.
+				StarShipPtr->weapon_counter = SPECIAL_LASER_FREEZE;
+				StarShipPtr->special_counter = SPECIAL_STUN;
+				ElementPtr->thrust_wait = SPECIAL_STUN;
+				ElementPtr->turn_wait = SPECIAL_STUN;
+				
+				ElementPtr->is_teleporting = FALSE;
+			}
+>>>>>>> b253569... Merge branch 'master' into allow-retreat
 		}
 		else
 		{
