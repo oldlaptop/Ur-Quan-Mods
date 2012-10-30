@@ -22,6 +22,7 @@
 
 #include "uqm/globdata.h"
 #include "libs/mathlib.h"
+#include "uqm/tactrans.h"
 
 
 #define MAX_CREW 8
@@ -308,7 +309,13 @@ intercept_pkunk_death (ELEMENT *ElementPtr)
 
 			/* Make sure we're not attempting to flee */
 			if (!StarShipPtr->state_flee)
+			{
 				ElementPtr->death_func = new_pkunk;
+				StarShipPtr->is_respawning = TRUE;
+			} else
+			{
+				ElementPtr->death_func = ship_death;
+			}
 		}
 		UnlockElement (StarShipPtr->hShip);
 	}

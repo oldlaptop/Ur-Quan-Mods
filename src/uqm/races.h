@@ -296,6 +296,14 @@ struct STARSHIP
 			/* SUPER_MELEE: Is used to preserve miscellanea stuff of
 			 * some ships after retreat [like chmmr's sattelites]
 			 */
+	BOOLEAN is_respawning;
+			/*
+			 * Used by ship_preprocess to avoid restoring a respawned Pkunk's
+			 * crew level to the value it was when Pkunk warped out.
+			 * 
+			 * TODO: This is an evil ugly hack, there has to be a better way
+			 * to do this.
+			 */
 
 	BYTE ship_input_state;
 	STATUS_FLAGS cur_status_flags;
