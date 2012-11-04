@@ -272,3 +272,6 @@
 #define UMGAH_BCS_MASK_PMAP_ANIM "graphics.umgahcaster"
 #define VAULT_MASK_PMAP_ANIM "graphics.syreenvault"
 #define WRECK_MASK_PMAP_ANIM "graphics.urquanwreck"
+
+// Added by allow-retreat
+#define RETREAT_SLASH_MASK_PMAP_ANIM "graphics.retreatslash"

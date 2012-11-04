@@ -135,6 +135,7 @@ DoRunAway (STARSHIP *StarShipPtr)
 	
 		StarShipPtr->ship_input_state = 0;
 	}
+
 	/* [allow-retreat] Mark the retreated ship in the ship selection box */
 	if((LOBYTE (GLOBAL (CurrentActivity)) == SUPER_MELEE))
 	{
