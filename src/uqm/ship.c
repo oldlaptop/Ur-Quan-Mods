@@ -170,8 +170,7 @@ ship_preprocess (ELEMENT *ElementPtr)
 	}
 	else
 	{	// Preprocessing for the first time
-		                             /* Don't stomp on respawning Pkunk */
-		if((StarShipPtr->crew_level) && (!StarShipPtr->is_respawning)) {
+		if(IS_COMINGBACK(StarShipPtr)) {
 			RDPtr->ship_info.crew_level=StarShipPtr->crew_level;
 			RDPtr->ship_info.energy_level=StarShipPtr->last_energy_level;
 		}
@@ -425,11 +424,16 @@ spawn_ship (STARSHIP *StarShipPtr)
 			RDPtr->ship_info.crew_level = RDPtr->ship_info.max_crew;
 	}
 
-	StarShipPtr->energy_counter = 0;
-	StarShipPtr->weapon_counter = 0;
-	StarShipPtr->special_counter = 0;
+	if(!IS_COMINGBACK(StarShipPtr)) 
+	{
+		StarShipPtr->energy_counter = 0;
+		StarShipPtr->weapon_counter = 0;
+		StarShipPtr->special_counter = 0;
 
-	StarShipPtr->state_flee = FALSE;
+		StarShipPtr->state_flee = FALSE;
+	}
+	printf("%i\n", StarShipPtr->static_counter);
+
 	StarShipPtr->CanRunAway = FALSE; /* this will become TRUE after time limit expires */
 	StarShipPtr->entrance_time = battleFrameCount; /* used for calculating time limit */
 

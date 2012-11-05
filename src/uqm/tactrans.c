@@ -712,8 +712,6 @@ ship_death (ELEMENT *ShipPtr)
 	}
 
 	StarShipPtr->cur_status_flags &= ~PLAY_VICTORY_DITTY;
-	if(opt_retreat != OPTVAL_DENY)
-		StarShipPtr->state_flee = FALSE;
 
 	DeltaEnergy (ShipPtr,
 			-(SIZE)StarShipPtr->RaceDescPtr->ship_info.energy_level);
@@ -751,12 +749,14 @@ ship_death (ELEMENT *ShipPtr)
 		switch(StarShipPtr->SpeciesID) {
 			case PKUNK_ID:
 				if(StarShipPtr->RaceDescPtr->data) {
-					return;
+					if(!StarShipPtr->state_flee)
+						return;
 				}
 				break;
 			default:
 				break;
 		}
+		StarShipPtr->state_flee = FALSE;
 	}
 
 	if (VictoriousStarShipPtr != NULL)
