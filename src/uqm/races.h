@@ -309,6 +309,10 @@ struct STARSHIP
 			 * TODO: This is an evil ugly hack, there has to be a better way
 			 * to do this.
 			 */
+	CHARACTERISTIC_STUFF characteristics;
+			/* SUPER_MELEE: Is used to preserve "characteristics" after
+			 * retreat. It's useful to save vux' limpets' effect.
+			 */
 
 	BYTE ship_input_state;
 	STATUS_FLAGS cur_status_flags;
