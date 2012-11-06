@@ -84,6 +84,19 @@ DoRunAway (STARSHIP *StarShipPtr)
 {
 	ELEMENT *ElementPtr;
 
+	switch(StarShipPtr->SpeciesID) {
+		case ILWRATH_ID:
+			// TODO: move Ilwrath cloak check here
+			break;
+		case ANDROSYNTH_ID:
+			if(StarShipPtr->cur_status_flags & SPECIAL)
+				return;
+			break;
+		default:
+			break;
+	}
+
+	printf("- limpets: %i\n", StarShipPtr->limpets);
 	LockElement (StarShipPtr->hShip, &ElementPtr);
 
 	StarShipPtr->state_flee = TRUE;
@@ -123,6 +136,21 @@ DoRunAway (STARSHIP *StarShipPtr)
 	
 		StarShipPtr->ship_input_state = 0;
 	}
+	/* [allow-retreat] Mark the retreated ship in the ship selection box */
+	if((LOBYTE (GLOBAL (CurrentActivity)) == SUPER_MELEE))
+	{
+		LockMutex (GraphicsLock);
+	
+		FRAME frame;
+
+		frame = SetAbsFrameIndex (PickMeleeFrame, StarShipPtr->playerNr);
+		mark_retreated_ship (frame, StarShipPtr->index);
+
+		UnlockMutex (GraphicsLock);
+	}
+	
+	printf("+ limpets: %i\n", StarShipPtr->limpets);
+	
 	UnlockElement (StarShipPtr->hShip);
 }
 
