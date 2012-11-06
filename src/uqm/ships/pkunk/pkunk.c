@@ -308,7 +308,6 @@ intercept_pkunk_death (ELEMENT *ElementPtr)
 							ShipPtr->death_func;
 
 			/* Make sure we're not attempting to flee */
-			printf("%i\n", StarShipPtr->state_flee);
 			if (!StarShipPtr->state_flee)
 			{
 				ElementPtr->death_func = new_pkunk;
@@ -446,7 +445,6 @@ pkunk_preprocess (ELEMENT *ElementPtr)
 
 		if (hPhoenix)
 		{
-			printf("TEST2\n");
 			ELEMENT *PhoenixPtr;
 
 			LockElement (hPhoenix, &PhoenixPtr);
