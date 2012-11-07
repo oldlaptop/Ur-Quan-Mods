@@ -22,6 +22,7 @@
 
 #include "uqm/globdata.h"
 #include "libs/mathlib.h"
+#include <libs/log.h>
 
 
 #define MAX_CREW 20
@@ -114,7 +115,47 @@ static RACE_DESC vux_desc =
 	0, /* CodeRef */
 };
 
+<<<<<<< HEAD
 #define LIMPET_SPEED 25
+=======
+// TODO: Remove this function. It is used to preserve limpets on ship icons (on 
+//	 right panel in melee). Right way is to remeber result icons and 
+//	 restore them after retreat/return.
+//
+// This function is exported, so cannot use StarShipPtr of real ship.
+// This function in not recommended to use in vux.c. Dirty way is used here.
+void
+vux_drawlimpet_onicon(ELEMENT *ElementPtr)
+{
+	STAMP s;
+	RESOURCE weapon_rsc[] =
+		{
+			SLIME_MASK_PMAP_ANIM,
+			NULL_RESOURCE,
+			NULL_RESOURCE,
+		};
+	FRAME weapon[NUM_VIEWS];
+
+	// Copy-pasted from "loadship.c:load_ship()"
+	if (!load_animation (weapon,
+			weapon_rsc[0],
+			weapon_rsc[1],
+			weapon_rsc[2]))
+	{
+		// TODO: process this error
+		log_add(log_Error, "Error: Cannot load VUX weapon resources to draw limpets.\n");
+		return;
+	}
+
+	// Copy-pasted from "limpet_collision()"
+	s.frame = SetAbsFrameIndex (weapon[0], (COUNT)TFB_Random ());
+
+	ModifySilhouette (ElementPtr, &s, MODIFY_IMAGE);
+
+	// Copy-pasted from "loadship.c:free_ship()"
+	free_image (weapon);
+}
+>>>>>>> 57ba70c... vux BUGFIX
 
 static void
 limpet_preprocess (ELEMENT *ElementPtr)
@@ -180,12 +221,9 @@ limpet_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 				StarShipPtr->RaceDescPtr->ship_data.weapon[0], (COUNT)TFB_Random ()
 				);
 
-#ifdef DRAW_LIMPETS_ON_RETURN
-		if(EnemyShipPtr->limpets < PRESERVE_LIMPETS)
-			memcpy(&EnemyShipPtr->limpets_stamps[EnemyShipPtr->limpets++], &s, sizeof(STAMP));
-#endif
-
 		ModifySilhouette (ElementPtr1, &s, MODIFY_IMAGE);
+
+		EnemyShipPtr->limpets++;
 	}
 
 	ElementPtr0->hit_points = 0;
