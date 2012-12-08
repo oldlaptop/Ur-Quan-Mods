@@ -144,7 +144,7 @@ DoRunAway (STARSHIP *StarShipPtr)
 		FRAME frame;
 
 		frame = SetAbsFrameIndex (PickMeleeFrame, StarShipPtr->playerNr);
-		mark_retreated_ship (frame, StarShipPtr->index);
+		mark_retreated_ship (frame, StarShipPtr);
 
 		UnlockMutex (GraphicsLock);
 	}
