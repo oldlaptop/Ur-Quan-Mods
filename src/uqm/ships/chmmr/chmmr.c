@@ -692,7 +692,7 @@ spawn_satellites (ELEMENT *ElementPtr)
 				if(!hit_points)		// Don't respawn sattelite, that was been destroyed before the last retreat
 					continue;
 			} else {
-				hit_points = SATELLITE_HITPOINTS;
+				hit_points = 10;
 			}
 
 			hSatellite = AllocElement ();

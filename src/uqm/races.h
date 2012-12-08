@@ -304,10 +304,6 @@ struct STARSHIP
 			 * TODO: This is an evil ugly hack, there has to be a better way
 			 * to do this.
 			 */
-
-	BYTE last_energy_level;
-			// SUPER_MELEE: To get back the last energy level after retreating
-
 	BYTE miscellanea_storage[sizeof(COUNT)*MISC_STORAGE_SIZE];
 			/* SUPER_MELEE: Is used to preserve miscellanea stuff of
 			 * some ships after retreat [like chmmr's sattelites]

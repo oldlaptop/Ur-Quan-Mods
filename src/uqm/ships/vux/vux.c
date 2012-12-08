@@ -115,9 +115,7 @@ static RACE_DESC vux_desc =
 	0, /* CodeRef */
 };
 
-<<<<<<< HEAD
 #define LIMPET_SPEED 25
-=======
 // TODO: Remove this function. It is used to preserve limpets on ship icons (on 
 //	 right panel in melee). Right way is to remeber result icons and 
 //	 restore them after retreat/return.
@@ -155,7 +153,6 @@ vux_drawlimpet_onicon(ELEMENT *ElementPtr)
 	// Copy-pasted from "loadship.c:free_ship()"
 	free_image (weapon);
 }
->>>>>>> 57ba70c... vux BUGFIX
 
 static void
 limpet_preprocess (ELEMENT *ElementPtr)
@@ -185,11 +182,12 @@ limpet_collision (ELEMENT *ElementPtr0, POINT *pPt0,
 	if (ElementPtr1->state_flags & PLAYER_SHIP)
 	{
 		STAMP s;
-		STARSHIP *StarShipPtr;
+		STARSHIP *StarShipPtr, *EnemyShipPtr;
 		RACE_DESC *RDPtr;
 
-		GetElementStarShip (ElementPtr1, &StarShipPtr);
-		RDPtr = StarShipPtr->RaceDescPtr;
+		GetElementStarShip (ElementPtr1, &EnemyShipPtr);
+		
+		RDPtr = EnemyShipPtr->RaceDescPtr;
 
 		if (++RDPtr->characteristics.turn_wait == 0)
 			--RDPtr->characteristics.turn_wait;
