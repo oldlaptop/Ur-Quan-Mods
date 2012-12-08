@@ -25,7 +25,7 @@
 #include "sounds.h"
 #include "weapon.h"
 #include "libs/mathlib.h"
-
+#include "libs/log.h"
 
 void
 spawn_planet (void)
@@ -411,3 +411,108 @@ AbandonShip (ELEMENT *ShipPtr, ELEMENT *TargetPtr,
 	}
 }
 
+<<<<<<< HEAD
+=======
+// Use visual indicators when two ships of the same type are fighting to differentiate the two.
+void
+draw_reticle (ELEMENT* ElementPtr)
+{
+	STARSHIP *StarShipPtr, *EnemyShipPtr;
+	HELEMENT hObject, hNextObject, hEnemyShip;
+	ELEMENT *ObjectPtr;
+	
+	assert (ElementPtr->state_flags & PLAYER_SHIP);
+	hEnemyShip = 0;
+
+	GetElementStarShip (ElementPtr, &StarShipPtr);
+	
+	for (hObject = GetHeadElement (); hObject; hObject = hNextObject)
+	{
+		LockElement (hObject, &ObjectPtr);
+		hNextObject = GetSuccElement (ObjectPtr);
+
+		if (!elementsOfSamePlayer (ObjectPtr, ElementPtr)
+				&& (ObjectPtr->state_flags & PLAYER_SHIP))
+		{
+			GetElementStarShip (ObjectPtr, &EnemyShipPtr);
+			
+			if (StarShipPtr->SpeciesID == EnemyShipPtr->SpeciesID)
+			{
+				hEnemyShip = hObject;
+				break;
+			}
+		}
+		
+		UnlockElement (hObject);
+	}
+
+	if (hEnemyShip) // "!OBJECT_CLOAKED (ElementPtr)" is taken care of elsewhere.
+	{
+		HELEMENT hReticleElement;
+		ELEMENT *EnemyPtr;
+
+		LockElement (hEnemyShip, &EnemyPtr);
+		GetElementStarShip (EnemyPtr, &EnemyShipPtr);
+
+		// Reticle frame stays on top of other images.
+		hReticleElement = AllocElement ();
+		if (hReticleElement)
+		{
+			ELEMENT *ReticlePtr;
+			extern FRAME reticle[];
+			SIZE dx, dy;
+
+			LockElement (hReticleElement, &ReticlePtr);
+			ReticlePtr->playerNr = NEUTRAL_PLAYER_NUM;
+			ReticlePtr->state_flags = APPEARING | FINITE_LIFE | NONSOLID | BACKGROUND_OBJECT;
+			SetPrimType (&DisplayArray[ReticlePtr->PrimIndex], STAMP_PRIM);
+			ReticlePtr->current.image.farray = reticle;
+			ReticlePtr->current.location = ElementPtr->current.location;
+
+			GetCurrentVelocityComponents (&ElementPtr->velocity, &dx, &dy);
+			SetVelocityComponents (&ReticlePtr->velocity, dx, dy);
+
+			if ((PlayerControl[ElementPtr->playerNr] & HUMAN_CONTROL) && (PlayerControl[EnemyPtr->playerNr] & HUMAN_CONTROL))
+				ReticlePtr->current.image.frame = SetAbsFrameIndex (reticle[0], ElementPtr->playerNr > EnemyPtr->playerNr);
+			else 
+				ReticlePtr->current.image.frame = SetAbsFrameIndex (reticle[0], !(PlayerControl[ElementPtr->playerNr] & HUMAN_CONTROL));
+
+			ReticlePtr->life_span = 1;
+			SetElementStarShip (ReticlePtr, StarShipPtr);
+			UnlockElement (hReticleElement);
+			InsertElement (hReticleElement, GetTailElement ());
+		}
+
+		UnlockElement (hEnemyShip);
+	}
+	
+	UnlockElement (StarShipPtr->hShip);
+}
+
+/*
+ * Returns the percentage of normal full crew a ship has remaining.
+ * Bloated Syreen gets a value < 100.
+ */
+UWORD
+calculate_crew_percentage (STARSHIP* StarShipPtr)
+{
+	/* 
+	 * We will divide by zero if we try to calculate crew percentage of a ship
+	 * with 0 max crew!
+	 */
+	if (StarShipPtr->RaceDescPtr->ship_info.max_crew != 0)
+	{
+		if (StarShipPtr->SpeciesID == SYREEN_ID)
+		{
+											   /* Syreen starting crew */
+			return  (UWORD) (((double)(StarShipPtr->RaceDescPtr->ship_info.crew_level)) / (12.0) * (100));
+		} else
+		{
+			return (UWORD) (((double)(StarShipPtr->RaceDescPtr->ship_info.crew_level)) /
+			((double)(StarShipPtr->RaceDescPtr->ship_info.max_crew)) * (100));
+		}
+	}
+
+	return 0;
+}
+>>>>>>> ee4ef7e... New feature: Retreat markers indicate damage
