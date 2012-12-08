@@ -274,4 +274,4 @@
 #define WRECK_MASK_PMAP_ANIM "graphics.urquanwreck"
 
 // Added by allow-retreat
-#define RETREAT_SLASH_MASK_PMAP_ANIM "graphics.retreatslash"
+#define RETREAT_SLASH_MASK_PMAP_ANIM "graphics.retreat_reticle"

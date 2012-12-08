@@ -1,1 +1,2 @@
 text.setupmenu = STRTAB:addons/allow-retreat/ui/setupmenu.txt
+graphics.retreat_reticle = GFXRES:addons/allow-retreat/ui/retreat_reticle.ani
